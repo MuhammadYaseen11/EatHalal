@@ -1,57 +1,103 @@
-// screens/BarcodeScanner.js
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, StyleSheet } from 'react-native';
-import { Camera } from 'expo-camera';
+import React, { useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import axios from 'axios';
 
-const BarcodeScanner = () => {
-    const [hasPermission, setHasPermission] = useState(null);
-    const [cameraVisible, setCameraVisible] = useState(false);
+export default function BarcodeScanner() {
+  const [barcode, setBarcode] = useState('');
+  const [status, setStatus] = useState('');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    // Request camera permission on mount
-    useEffect(() => {
-        const getCameraPermission = async () => {
-            const { status } = await Camera.requestCameraPermissionsAsync();
-            setHasPermission(status === 'granted');
-        };
+  const handleBarcodeChange = (text) => {
+    setBarcode(text);
+  };
 
-        getCameraPermission();
-    }, []); // Empty dependency array to only run once when component mounts
+  const handleSearch = async () => {
+    setLoading(true);
+    setMessage(''); // Reset message before making the API call
 
-    // Show camera when the button is pressed
-    const handleScanPress = () => {
-        setCameraVisible(true); // Only show the camera after permission is granted
-    };
+    try {
+      // Make the API request to Open Food Facts
+      const response = await axios.get(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
 
-    if (hasPermission === null) {
-        return <Text>Requesting for camera permission...</Text>;
+      if (response.data.status === 1) {
+        const product = response.data.product;
+        const halalCert = product['halal'] || 'no'; // Check if the product is halal based on the data available
+        const ingredientsText = product.ingredients_text || '';
+
+        const haramIngredients = ['pork', 'alcohol', 'gelatin', 'lard', 'enzymes', 'rennet']; // List of haram-related ingredients
+
+        // First check if there's an explicit halal certification
+        if (halalCert.toLowerCase() === 'yes') {
+          setStatus('halal');
+          setMessage(`The product with barcode ${barcode} is HALAL.`);
+        } else {
+          // If no direct certification, check ingredients for haram items
+          const isHaram = haramIngredients.some(ingredient => ingredientsText.toLowerCase().includes(ingredient));
+
+          if (isHaram) {
+            setStatus('haram');
+            setMessage(`The product with barcode ${barcode} is HARAM.`);
+          } else {
+            // If no haram ingredients, we assume the product is halal
+            setStatus('halal');
+            setMessage(`The product with barcode ${barcode} is likely HALAL.`);
+          }
+        }
+      } else {
+        setMessage('Product not found or invalid barcode.');
+      }
+    } catch (error) {
+      setMessage('Error fetching data. Please try again later.');
+    } finally {
+      setLoading(false);
     }
+  };
 
-    if (hasPermission === false) {
-        return <Text>No access to camera</Text>;
-    }
-
-    return (
-        <View style={styles.container}>
-            <Text>Barcode Scanner</Text>
-            {!cameraVisible ? (
-                <Button title="Scan Barcode" onPress={handleScanPress} />
-            ) : (
-                <Camera style={styles.camera} />
-            )}
-        </View>
-    );
-};
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Enter Product Barcode</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Enter barcode"
+        keyboardType="numeric"
+        value={barcode}
+        onChangeText={handleBarcodeChange}
+      />
+      <Button title="Search" onPress={handleSearch} />
+      {loading && <Text style={styles.loadingText}>Loading...</Text>}
+      {message ? <Text style={styles.resultText}>{message}</Text> : null}
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    camera: {
-        width: '100%',
-        height: '100%',
-    },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 30,
+  },
+  input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    width: '80%',
+    marginBottom: 30,
+    paddingLeft: 10,
+  },
+  resultText: {
+    fontSize: 18,
+    marginBottom: 30,
+    color: 'green',
+  },
+  loadingText: {
+    fontSize: 18,
+    marginTop: 20,
+    color: 'blue',
+  },
 });
-
-export default BarcodeScanner;
