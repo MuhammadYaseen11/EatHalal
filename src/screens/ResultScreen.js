@@ -1,42 +1,45 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
-import axios from 'axios';
+// screens/ResultScreen.js
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 
 const ResultScreen = ({ route }) => {
     const { barcode } = route.params;
-    const [loading, setLoading] = useState(true);
-    const [isHalal, setIsHalal] = useState(false);
+    const [halalStatus, setHalalStatus] = useState(null);
 
+    // Simulate checking halal status based on barcode
     useEffect(() => {
-        axios.get(`https://api.eathalal.com/check/${barcode}`)
-            .then(response => {
-                setIsHalal(response.data.isHalal);
-                setLoading(false);
-            })
-            .catch(error => {
-                console.error(error);
-                setLoading(false);
-            });
+        // Here you would typically make an API call to check if the product is halal
+        // For demonstration, we'll just use a mock response
+        const checkHalalStatus = async () => {
+            // Mock API call
+            const response = await fetch(`https://api.example.com/check-halal/${barcode}`);
+            const data = await response.json();
+            setHalalStatus(data.isHalal); // Assume the API returns { isHalal: true/false }
+        };
+        checkHalalStatus();
     }, [barcode]);
-
-    if (loading) {
-        return <ActivityIndicator size="large" color="#00ff00" />;
-    }
 
     return (
         <View style={styles.container}>
-            <Text style={[styles.text, isHalal ? styles.halal : styles.notHalal]}>
-                {isHalal ? 'This product is Halal' : 'This product is NOT Halal'}
-            </Text>
+            <Text style={styles.title}>Scan Result</Text>
+            <Text>Barcode: {barcode}</Text>
+            {halalStatus !== null && (
+                <Text>{halalStatus ? 'This product is Halal!' : 'This product is NOT Halal.'}</Text>
+            )}
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-    text: { fontSize: 20, fontWeight: 'bold', margin: 20 },
-    halal: { color: 'green' },
-    notHalal: { color: 'red' },
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+    },
 });
 
 export default ResultScreen;
