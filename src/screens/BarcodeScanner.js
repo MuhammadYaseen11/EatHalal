@@ -53,8 +53,8 @@ export default function BarcodeScanner() {
       setLoading(false);
     }
   };
-
-  return (
+// UI
+  return ( //UI
     <View style={styles.container}>
       <Text style={styles.title}>Enter Product Barcode</Text>
       <TextInput
@@ -70,12 +70,12 @@ export default function BarcodeScanner() {
     </View>
   );
 }
-
+//styles
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+  container: { 
+    flex: 1, 
+    justifyContent: 'center',// it will align the content of the container to the center
+    alignItems: 'center', // it will align the content of the container to the center
     padding: 20,
   },
   title: {
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     color: 'green',
   },
-  loadingText: {
+  loadingText: { //loading text
     fontSize: 18,
     marginTop: 20,
     color: 'blue',
