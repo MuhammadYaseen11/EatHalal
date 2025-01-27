@@ -44,7 +44,7 @@ export default function BarcodeScanner() {
             setMessage(`The product with barcode ${barcode} is likely HALAL.`);
           }
         }
-      } else {
+      } else { //product not found message
         setMessage('Product not found or invalid barcode.');
       }
     } catch (error) {
