@@ -47,7 +47,7 @@ export default function BarcodeScanner() {
       } else { //product not found message
         setMessage('Product not found or invalid barcode.');
       }
-    } catch (error) {
+    } catch (error) { //error message
       setMessage('Error fetching data. Please try again later.');
     } finally {
       setLoading(false);
